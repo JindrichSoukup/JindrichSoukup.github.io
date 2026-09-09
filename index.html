@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,17 +15,19 @@
     }
     h1 { margin-bottom: 0.25rem; }
     p.subtitle { color: #555; margin-top: 0; }
-    ul { padding-left: 1.2rem; }
-    li { margin-bottom: 0.5rem; }
+    .project { margin: 1.5rem 0; }
+    .project h2 { margin-bottom: 0.25rem; font-size: 1.1rem; }
+    .project p { margin-top: 0.25rem; color: #333; }
     a { color: #33492F; }
   </style>
 </head>
 <body>
   <h1>Jindřich Soukup</h1>
-  <p class="subtitle">Osobní stránka a rozcestník</p>
-  <p>Projekty:</p>
-  <ul>
-    <li><a href="herbar_nalezy.html">Herbář nálezů — Česká flóra</a></li>
-  </ul>
+  <p class="subtitle">Personal site and project index</p>
+
+  <div class="project">
+    <h2><a href="herbar_nalezy.html">Herbář nálezů</a></h2>
+    <p>A field-planning tool for iNaturalist's Česká flóra project: tell it where and when you'll be, and it shows which of your still-missing vascular plant species you could realistically find nearby, with real GPS localities, flowering windows, and warnings for species that are usually garden plants rather than wild ones. Built from iNaturalist, Pladias, and GBIF data, packaged as a single offline-capable HTML file — no install, no backend.</p>
+  </div>
 </body>
 </html>
