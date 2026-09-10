@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG build vs. buy in a larger organisation</title>
+  <meta name="description" content="What three days of building home-made RAG components is worth to someone who has to run, manage or orchestrate work like this at scale.">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      max-width: 720px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+      line-height: 1.6;
+      color: #1a1a1a;
+    }
+    h1 { margin-bottom: 0.25rem; font-size: 1.6rem; }
+    p.subtitle { color: #555; margin-top: 0; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 2.5rem 0 0.5rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    h3 { font-size: 1rem; margin: 1.6rem 0 0.4rem; }
+    p, li { color: #333; }
+    ol, ul { padding-left: 1.2rem; }
+    li { margin: 0.5rem 0; }
+    a { color: #33492F; }
+    .back { font-size: 0.9rem; margin-bottom: 2rem; }
+    .question {
+      background: #f7f7f5;
+      border-left: 3px solid #33492F;
+      padding: 0.7rem 1rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .question p { margin: 0; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.2rem 0;
+      font-size: 0.94rem;
+    }
+    th, td {
+      border: 1px solid #e5e5e5;
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f7f7f5; font-weight: 600; }
+    code {
+      background: #f4f4f2;
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    .table-wrap { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <p class="back"><a href="index.html">← Jindřich Soukup</a></p>
+
+  <h1>RAG build vs. buy in a larger organisation</h1>
+  <p class="subtitle">
+    Three follow-on questions and answers from a conversation about what
+    three days of building home-made RAG components is worth to someone who
+    has to run, manage or orchestrate work like this inside a larger
+    organisation. Written alongside
+    <a href="https://github.com/JindrichSoukup/magazine-rag">a RAG pipeline
+    over a magazine archive</a>; the companion piece is
+    <a href="rag-checklist.html">a layer-by-layer map of the decisions</a>.
+  </p>
+
+  <h2>1. What can I take from building this myself?</h2>
+  <div class="question">
+    <p><strong>Q:</strong> I spent three days building home-made RAG
+    components. What can I take from that for somebody who has to run,
+    manage or orchestrate work like this inside a larger organisation?</p>
+  </div>
+
+  <h3>The most expensive part of the work is invisible in demos</h3>
+  <p>Almost all the time went into the "boring" part: parsing the PDF,
+  article boundaries, repairing broken words. Embedding and vector search —
+  the part that looks interesting and that vendor demos sell — took a
+  fraction of it. <strong>The management consequence:</strong> anyone
+  estimating a RAG project's timeline by how quickly one can "plug in
+  LangChain and Pinecone" is estimating wrongly. A realistic estimate has to
+  allow for data-specific work that cannot be scoped in advance, because it
+  only appears on contact with real data.</p>
+
+  <h3>Silent errors are more dangerous than crashes — and that is a management problem</h3>
+  <p>Almost none of the bugs we found — shared pages, stylistically
+  unrelated text merged into one block, a cut-point function that never
+  worked — failed with an error. The code ran, looked fine, and the result
+  was quietly wrong. <strong>The transferable lesson:</strong> "it ran
+  without an error" is not an acceptable definition of done for a data
+  pipeline. You need an explicit, measurable layer of confidence — here
+  <code>quality_flags</code> plus a summary audit — as a
+  <strong>first-class deliverable</strong>, not a check you do "if there is
+  time left", because there will not be.</p>
+
+  <h3>The cost of an iteration is itself a design decision</h3>
+  <p>Every fix in extraction meant regenerating the whole archive: hours of
+  computation. That is why we had to deal with checkpointing, with
+  <code>upsert</code> rather than a full index rebuild, with testing on one
+  issue before running over 75. <strong>For running a team:</strong> ask up
+  front "what does one fix-and-check cycle cost", not once somebody tells
+  you a regeneration takes overnight. That number directly determines how
+  fast the team can learn from its mistakes.</p>
+
+  <h3>Diagnostic tools are not overhead — they are part of the work</h3>
+  <p>More than half a dozen small diagnostic scripts appeared along the way:
+  dump a specific page, summarise uncertainty across the archive, and so on.
+  None was planned; each appeared as a specific mystery did. <strong>The
+  planning lesson:</strong> if an estimate for "build a data pipeline"
+  contains no budget for "build the tools that tell me why the pipeline does
+  what it does", the estimate is incomplete.</p>
+
+  <h3>What a system costs is mostly decided by your architecture, not the vendor's price list</h3>
+  <p>When we worked the costs out, the difference between "cheap" and
+  "expensive" hosting turned out to be negligible for us. What actually
+  moves the bill is <strong>your own decisions</strong>: how much context you
+  send to the LLM, the promote threshold, the window size. <strong>For
+  anyone holding a budget:</strong> before negotiating a discount with a
+  vendor, check whether your own architecture is sending five times more
+  context than it needs to.</p>
+
+  <h3>"Build vs. buy" is not binary — it is a question of where your differentiation sits</h3>
+  <p>We simulated how the same data would be handled by a general-purpose
+  tool of the NotebookLM kind. For a <em>generic</em> question it works
+  respectably; for anything requiring precise citation or article boundaries
+  it fails outright. <strong>Transferably:</strong> general tools are
+  optimised for the generic case. If your real value lies in accuracy over
+  specific or non-standard data, "just upload it into a finished tool" will
+  not get you where you need to be — but finding that out
+  <em>beforehand</em>, rather than after deployment, takes a small prototype
+  or pilot, not reading marketing material.</p>
+
+  <h3>Decisions without a reason are inherited badly</h3>
+  <p>Throughout, I pushed for decisions with an explicit "why", not just a
+  "what": the embedding model, Chroma versus FAISS, the chunk size. When you
+  come to write documentation or a handover for a team, that is exactly what
+  survives. "Why we did it this way" is the first thing to be lost, and it is
+  exactly what the next person needs when they decide to change it.</p>
+
+  <h2>2. Are there situations where build is unambiguously better?</h2>
+  <div class="question">
+    <p><strong>Q:</strong> So are there really situations where build is
+    unambiguously better than buy?</p>
+  </div>
+
+  <p>Yes, but somewhat differently from how it is usually framed — and it is
+  visible in what we did.</p>
+
+  <h3>"Build vs. buy" is not one question, it is a question per layer</h3>
+  <p>Look at what this project actually did:</p>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Layer</th><th>What we did</th><th>Why</th></tr>
+    <tr>
+      <td>Embedding model</td>
+      <td><strong>bought</strong> (used a finished one)</td>
+      <td>a commodity — nobody gains an advantage by building their own transformer</td>
+    </tr>
+    <tr>
+      <td>Vector search</td>
+      <td><strong>bought</strong> (used Chroma)</td>
+      <td>a commodity — nobody writes their own HNSW index</td>
+    </tr>
+    <tr>
+      <td>Parsing the PDFs, article boundaries, repairing typesetting slips</td>
+      <td><strong>built</strong> from scratch</td>
+      <td>there is no "buy" here to begin with</td>
+    </tr>
+  </table>
+  </div>
+  <p>So what we called a "home-made RAG" is in fact <strong>80% buy and 20%
+  build</strong> — it is just that the build is the visible, time-consuming
+  part. The key mistake in reasoning is to pretend "build vs. buy" is one
+  decision for the whole system.</p>
+
+  <h3>When build is unambiguously right on that remaining layer</h3>
+  <ol>
+    <li><strong>When a general tool does not solve the problem at all, not
+    merely less well.</strong> Our shared boundary pages, editorial typos,
+    hyphenated word breaks — no vendor will build a general solution for
+    "the quirks of an InDesign export of a 70-year-old Czech magazine".
+    There is no "buy" option on the table here: either you build it, or the
+    problem goes unsolved.</li>
+    <li><strong>When accuracy and traceability are the product, not a
+    detail.</strong> If the value of your system is "I know exactly which
+    author and which page", not "some answer from some source", then buying
+    a general tool that does not do that is not the cheaper option — it is a
+    different product that does not address your brief.</li>
+    <li><strong>When you need auditability a black box cannot give
+    you.</strong> <code>quality_flags</code> work because we know exactly
+    what happened inside. You cannot get that from a hosted "upload a PDF,
+    ask a question" tool: you have no access to the inside.</li>
+  </ol>
+
+  <h3>But — and this matters for an honest answer</h3>
+  <p>"Build is right" <strong>does not mean "it is free"</strong>. It still
+  carries a cost: every fix meant regenerating the whole archive,
+  maintaining the diagnostics, running the regression. Deciding to build
+  this layer is deciding to <strong>take on that maintenance cost
+  permanently</strong>, not to make a one-off outlay. The right management
+  question is not "can we build it", but "do we want to own this kind of
+  maintenance long term, or would we rather pay someone to do it for us,
+  worse".</p>
+  <p><strong>In short:</strong> build is unambiguously better exactly where
+  your differentiation meets the idiosyncrasy of your data — and that is a
+  narrower set of cases than "build is generally better". Most of a RAG
+  stack stays a commodity, where buy makes sense almost always.</p>
+
+  <h2>3. So RAG can be bought in pieces, not as one black box?</h2>
+  <div class="question">
+    <p><strong>Q:</strong> So after this experience I know that RAG in the
+    "buy" sense need not be one black box, of the NotebookLM kind — it can be
+    bought in pieces.</p>
+  </div>
+
+  <p>Exactly — and it is a natural continuation of the per-layer reasoning.
+  The scale is <strong>not</strong> "black box versus build everything"; it
+  is a spectrum where you choose, <strong>layer by layer</strong>, which one
+  to buy finished and which to build.</p>
+
+  <div class="table-wrap">
+  <table>
+    <tr><th>Layer</th><th>What can be bought separately</th><th>What we did</th></tr>
+    <tr><td><strong>Document parsing / ingest</strong></td><td>Unstructured.io, LlamaParse, Google Document AI Layout Parser — services specifically for "PDF to clean chunks"</td><td>built to measure</td></tr>
+    <tr><td><strong>Chunking strategy</strong></td><td>often part of the parsing service above, or a framework (LangChain text splitters)</td><td>built to measure (article-aware)</td></tr>
+    <tr><td><strong>Embedding</strong></td><td>OpenAI/Cohere/Voyage APIs</td><td>bought-equivalent, only hosted locally</td></tr>
+    <tr><td><strong>Vector store</strong></td><td>Pinecone/Weaviate/Qdrant Cloud</td><td>bought-equivalent (Chroma, local)</td></tr>
+    <tr><td><strong>Reranking</strong></td><td>Cohere Rerank API</td><td>not addressed yet</td></tr>
+    <tr><td><strong>Orchestration, the glue</strong></td><td>LangChain, LlamaIndex, Haystack</td><td>built to measure</td></tr>
+    <tr><td><strong>Answer generation</strong></td><td>Claude/GPT/Gemini APIs</td><td>bought</td></tr>
+    <tr><td><strong>The whole thing at once</strong></td><td>NotebookLM, Glean, ChatGPT with a file upload</td><td>simulated, for comparison</td></tr>
+  </table>
+  </div>
+
+  <p>Note that <strong>even the layer we did most by hand</strong>, PDF
+  parsing, can now be bought as a standalone service. The question is not
+  "does a bought version exist" but "does it solve <em>my</em> particular
+  idiosyncrasies" — and you will not learn that from a marketing page, you
+  learn it from a pilot on real data.</p>
+
+  <h3>Why this observation matters more than it sounds</h3>
+  <p>For management it means the build-vs-buy decision <strong>does not
+  happen once at the start of a project</strong>. It happens <strong>at every
+  seam</strong> between layers, continuously, as you learn more about the
+  data. Consequences:</p>
+  <ol>
+    <li><strong>The seams between bought components are still your
+    work.</strong> Even having bought the embedding, the vector database and
+    the LLM API separately, the glue between them — when to promote to a
+    whole article, how to assemble the prompt — is still something you have
+    to design and own. Composability does not mean zero integration
+    work.</li>
+    <li><strong>Buying layer by layer requires knowing your own stack layer
+    by layer</strong> — precisely the table above. Without it, it is easy to
+    end up building because nobody asked whether that particular layer had
+    already become a commodity.</li>
+    <li><strong>The price of flexibility is dependence on more seams, not on
+    one vendor.</strong> A fully black-box solution has one point of failure
+    and one negotiation. A composable stack has five or six, each with its
+    own risk of an outage, a price change or a breaking API change.</li>
+  </ol>
+  <p><strong>In short:</strong> rather than asking "build or buy", write the
+  stack out by layer as in the table above, and ask the question separately
+  for each.</p>
+</body>
+</html>
