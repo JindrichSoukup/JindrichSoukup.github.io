@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG — a layer-by-layer map of the decisions</title>
+  <meta name="description" content="The questions that get settled, explicitly or silently by default, in every layer of a retrieval-augmented generation system.">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      max-width: 720px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+      line-height: 1.6;
+      color: #1a1a1a;
+    }
+    h1 { margin-bottom: 0.25rem; font-size: 1.6rem; }
+    p.subtitle { color: #555; margin-top: 0; }
+    h2 {
+      font-size: 1.05rem;
+      margin: 2rem 0 0.5rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; color: #333; }
+    a { color: #33492F; }
+    .back { font-size: 0.9rem; margin-bottom: 2rem; }
+    .closing {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e5e5;
+      color: #333;
+    }
+    code {
+      background: #f4f4f2;
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <p class="back"><a href="index.html">← Jindřich Soukup</a></p>
+
+  <h1>RAG — a layer-by-layer map of the decisions</h1>
+  <p class="subtitle">
+    The questions that get settled — explicitly, or silently by a default
+    value — in every layer of a RAG system. Each entry says <em>what</em> is
+    being decided, not how to decide it: that always depends on the case at
+    hand.
+  </p>
+  <p class="subtitle">
+    Written while building
+    <a href="https://github.com/JindrichSoukup/magazine-rag">a RAG pipeline
+    over a magazine archive</a> by hand, one layer at a time, which is how
+    the list came to exist at all.
+  </p>
+
+  <h2>1. Ingest and document parsing</h2>
+  <ul>
+    <li>Which formats must the system handle (PDF, DOCX, HTML, images/OCR, tables)?</li>
+    <li>Is OCR needed? How accurate does it have to be?</li>
+    <li>How is layout handled — multi-column text, tables, headers and footers?</li>
+    <li>How is structure preserved (headings, section hierarchy)?</li>
+    <li>How is metadata extracted (author, date, title, page number)?</li>
+    <li>How is boilerplate removed or marked (repeating headers, footers, page numbers)?</li>
+    <li>How are images, captions and annotations treated — part of the text, or separate?</li>
+    <li>Several languages inside one document?</li>
+    <li>Build vs. buy: your own parser, or a service (Unstructured.io, LlamaParse, Document AI Layout Parser)?</li>
+  </ul>
+
+  <h2>2. Chunking</h2>
+  <ul>
+    <li>Target chunk size (tokens or characters) — granularity against consistency for embedding.</li>
+    <li>Method: fixed size, recursive/hierarchical, semantic (by paragraph or sentence), or by document structure (by heading or section)?</li>
+    <li>Overlap between chunks — how much, and how (the last N characters, whole paragraphs)?</li>
+    <li>What about tables, code, images and captions — chunks of their own, or part of the surrounding text?</li>
+    <li>A contextual header on the chunk (metadata written into the embedded text) — yes or no, and how much?</li>
+    <li>What metadata is stored with a chunk (source, page, section, date, author, access rights)?</li>
+    <li>Hierarchical "parent-child" chunks (a small chunk to find it, a larger one for context)?</li>
+    <li>What happens to a chunk that exceeds the embedding model's token limit (drop, truncate, split)?</li>
+    <li>How are the cover and unrelated parts of a document handled (title page, index, advertising)?</li>
+  </ul>
+
+  <h2>3. Embedding</h2>
+  <ul>
+    <li>Model: local (open-weight) or hosted behind an API?</li>
+    <li>Language competence — monolingual or multilingual, and how well does it cover the target language?</li>
+    <li>Vector dimension — accuracy against storage cost and search speed.</li>
+    <li>Vector normalisation (unit length) — it determines which similarity metric makes sense.</li>
+    <li>Asymmetric embeddings (a different prefix or instruction for the query and for the document)?</li>
+    <li>Numeric precision (float32/float16/quantisation) — storage against quality.</li>
+    <li>Batch size and throughput when processing a large corpus.</li>
+    <li>What happens when the model changes — must the whole corpus be reindexed?</li>
+    <li>Cost per token (if an API), latency, rate limits.</li>
+    <li>Checkpointing: how a long indexing run survives interruption.</li>
+  </ul>
+
+  <h2>4. Vector store</h2>
+  <ul>
+    <li>A hosted service or self-hosted (a library or a container)?</li>
+    <li>Index type: exact (flat) or approximate (HNSW, IVF, PQ) — accuracy against speed and scale.</li>
+    <li>Support for metadata filters (and whether filtering happens before or after the vector search)?</li>
+    <li>Hybrid search (vector plus keyword/BM25) — yes or no, and how are the two weighted?</li>
+    <li>Multi-tenancy and isolation of data between users or departments?</li>
+    <li>Update strategy: <code>upsert</code> per record, or a complete rebuild of the index?</li>
+    <li>Scalability (sharding, replication) as the data grows.</li>
+    <li>Backup and persistence.</li>
+    <li>Pricing model (storage per GB, read/write charges, flat minimums).</li>
+  </ul>
+
+  <h2>5. Retrieval strategy</h2>
+  <ul>
+    <li><code>top_k</code> — how many candidates are pulled before further processing?</li>
+    <li>Similarity metric (cosine, dot product, Euclidean distance)?</li>
+    <li>Metadata filters in the query (year, author, document type, access rights)?</li>
+    <li>Query transformation before search (query expansion, HyDE, several query variants)?</li>
+    <li>Reranking — a second, more accurate pass (a cross-encoder) over the initial candidates; yes or no, and which model?</li>
+    <li>Result diversity (e.g. MMR) — should near-identical chunks be avoided?</li>
+    <li>Document-level aggregation — when to return just a chunk, when a whole document or section?</li>
+    <li>How much surrounding context to attach to each hit (a window of neighbouring chunks)?</li>
+    <li>Deduplication of overlapping or repeating results?</li>
+    <li>The weighting between vector and keyword search in a hybrid approach?</li>
+  </ul>
+
+  <h2>6. Assembling the prompt and context for the LLM</h2>
+  <ul>
+    <li>The system prompt — grounding rules, citation format, tone, language of the answer.</li>
+    <li>How many tokens of context to send (input budget against room for the answer)?</li>
+    <li>Citation format — an inline reference, a list at the end, or both?</li>
+    <li>What to do with context that does not cover the question at all, or only partly?</li>
+    <li>The order of chunks in the prompt (most relevant first or last — models tend to attend less to the middle of a long context)?</li>
+    <li>What to cache (a repeating system prompt or instruction) for cost?</li>
+  </ul>
+
+  <h2>7. Answer generation (the LLM)</h2>
+  <ul>
+    <li>Which model — quality against cost and latency (it need not be the strongest one available)?</li>
+    <li>Temperature and the other sampling parameters?</li>
+    <li>Maximum answer length?</li>
+    <li>Stream the answer, or wait for the whole thing?</li>
+    <li>Is structured output needed (JSON, tools/function calling)?</li>
+    <li>A fallback model or strategy when the primary one is down or saturated?</li>
+  </ul>
+
+  <h2>8. Evaluation and quality</h2>
+  <ul>
+    <li>Which metrics to track (retrieval precision and recall, faithfulness of the answer to its sources, relevance)?</li>
+    <li>How is the test set built (hand-written questions with known answers, or generated)?</li>
+    <li>Automated or human evaluation of the answers?</li>
+    <li>Ongoing monitoring in production (quality drift, user feedback)?</li>
+    <li>How is the trustworthiness or uncertainty of the processed data measured and reported?</li>
+  </ul>
+
+  <h2>9. Operations and infrastructure</h2>
+  <ul>
+    <li>Latency requirements (real-time chat against batch processing)?</li>
+    <li>Cost tracking and budget (where exactly the money goes — embedding, storage, generation)?</li>
+    <li>How often and by what process is the index rebuilt when the source data changes?</li>
+    <li>Versioning — what happens to the old index when the embedding model changes?</li>
+    <li>Security and privacy (sensitive data, access control at document or chunk level)?</li>
+    <li>Data residency and compliance requirements?</li>
+  </ul>
+
+  <h2>10. Guardrails and traceability</h2>
+  <ul>
+    <li>Detecting and limiting hallucination (answers outside the supplied context)?</li>
+    <li>Verifying that the citations in an answer really correspond to the sources used?</li>
+    <li>Filtering inappropriate content?</li>
+    <li>How does the system behave when the honest answer is "I don't know" — is that supported, or is the model pushed to answer at any cost?</li>
+  </ul>
+
+  <p class="closing">
+    <strong>The question that cuts across the whole list.</strong>
+    For every layer: build or buy — and if buy, from whom, at what price and
+    at what dependency? This gets settled separately for each layer, not once
+    for the system as a whole. Written up separately in
+    <a href="https://github.com/JindrichSoukup/magazine-rag/blob/master/docs/rag-build-vs-buy.md">RAG:
+    build vs. buy</a>.
+  </p>
+</body>
+</html>
