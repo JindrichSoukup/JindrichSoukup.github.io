@@ -35,8 +35,8 @@
 
   <div class="project">
     <h2><a href="https://github.com/JindrichSoukup/magazine-rag">Magazine RAG</a> <span class="alt-name">(Živa archive pipeline)</span></h2>
-    <p>I built this one by hand, layer by layer, to see what a retrieval system actually decides — and what it decides silently for you when you aren't looking. Two notes came out of it that outlast the code: a <a href="rag-checklist.html">layer-by-layer map of every decision a RAG system makes</a>, and <a href="rag-build-vs-buy.html">what building it yourself says about build-vs-buy</a>.</p>
-    <p>The pipeline turns 75 years of <a href="https://ziva.avcr.cz">Živa</a>, a Czech natural-history monthly, from one PDF per issue into a corpus you can query, cited down to the issue and page. The hard part is never the vector search; it is working out where one article ends and the next begins. Generalising it onto an unrelated magazine, <a href="https://magpi.raspberrypi.com/issues">The MagPi</a>, surfaced five bugs the first one never could — and not one of them crashed anything.</p>
+    <p>I built this one by hand, layer by layer, to see what building a retrieval system actually involves, then distilled what I learned into two notes: a <a href="rag-checklist.html">layer-by-layer map of every decision such a system takes</a>, and <a href="rag-build-vs-buy.html">the build-vs-buy trade-offs behind them</a>.</p>
+    <p>The pipeline turns 75 years of <a href="https://ziva.avcr.cz">Živa</a>, a Czech natural-history monthly, from one PDF per issue into a corpus you can query, cited down to the issue and page. The hard part is never the vector search; it is parsing and enriching the source. Živa's archive is under copyright, so the public demo runs on an unrelated, openly licensed magazine, <a href="https://magpi.raspberrypi.com/issues">The MagPi</a> — porting it there took a handful of targeted fixes rather than a rewrite, which is the part current LLMs have genuinely made cheap.</p>
   </div>
 </body>
 </html>
